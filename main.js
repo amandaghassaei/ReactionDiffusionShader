@@ -75,14 +75,9 @@ function initGL() {
     mouseEnableLocation = gl.getUniformLocation(stepProgram, "u_mouseEnable");
 
 
+    frameBuffers = [makeFrameBuffer(), makeFrameBuffer()];
+
     resetWindow();
-
-    states[0] = resizedLastState;
-    states[1] = resizedCurrentState;
-    resizedLastState = null;
-    resizedCurrentState = null;
-
-    frameBuffers = [makeFrameBuffer(states[0]), makeFrameBuffer(states[1])];
 
     gl.bindTexture(gl.TEXTURE_2D, states[0]);//original texture
 
@@ -99,11 +94,8 @@ function loadVertexData(gl, program) {
 	gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 }
 
-function makeFrameBuffer(state){
-    var frameBuffer = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, state, 0);
-    return frameBuffer;
+function makeFrameBuffer(){
+    return gl.createFramebuffer();
 }
 
 
@@ -148,10 +140,14 @@ function render(){
 
         if (resizedLastState) {
             states[0] = resizedLastState;
+            gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers[0]);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, states[0], 0);
             resizedLastState = null;
         }
         if (resizedCurrentState) {
             states[1] = resizedCurrentState;
+            gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers[1]);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, states[1], 0);
             resizedCurrentState = null;
         }
 
