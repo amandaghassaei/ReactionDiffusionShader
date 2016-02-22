@@ -51,6 +51,10 @@
 
         uniform float u_renderFlag;
 
+        float noise(float x) {
+          return x - floor(x * (1.0 / 289.0)) * 289.0;
+        }
+
         void main() {
 
             vec2 fragCoord = gl_FragCoord.xy;
@@ -71,13 +75,14 @@
             vec2 w = fragCoord + vec2(-1.0, 0.0);//west
 
 
-            //if (u_mouseEnable == 1.0){
-            //    vec2 pxDistFromMouse = (v_texCoord - u_mouseCoord)*(v_texCoord - u_mouseCoord)/onePixel;
-            //    float tol = 0.005;
-            //    if (pxDistFromMouse.x < tol && pxDistFromMouse.y < tol){
-            //        v += 3.0;//mouse adds v to scene
-            //    }
-            //}
+            if (u_mouseEnable == 1.0){
+                vec2 pxDistFromMouse = (fragCoord - u_mouseCoord)*(fragCoord - u_mouseCoord);
+                float tol = 10.0;
+                if (pxDistFromMouse.x < tol && pxDistFromMouse.y < tol){
+                    u = 0.5 + 0.1 * 0.02 - 0.01;
+                    v = 0.25 + 0.1 * 0.02 - 0.01;
+                }
+            }
 
             vec2 grad = texture2D(u_image, n/u_textureSize).xy + texture2D(u_image, s/u_textureSize).xy
                 + texture2D(u_image, e/u_textureSize).xy + texture2D(u_image, w/u_textureSize).xy - 4.0*currentState;

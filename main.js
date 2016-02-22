@@ -39,8 +39,8 @@ function initGL() {
     canvas.height = canvas.clientHeight;
 
     canvas.onmousemove = onMouseMove;
-    canvas.onmouseout = onMouseOut;
-    canvas.onmouseover = onMouseIn;
+    canvas.onmousedown = onMouseDown;
+    canvas.onmouseup = onMouseUp;
 
     window.onresize = onResize;
 
@@ -164,7 +164,9 @@ function render(){
                 window.requestAnimationFrame(render);
                 return;
             }
+
             step(i);
+
         }
 
         gl.uniform1f(flipYLocation, -1);  // need to y flip for canvas
@@ -217,13 +219,13 @@ function resetWindow(){
 }
 
 function onMouseMove(e){
-    gl.uniform2f(mouseCoordLocation, e.clientX/width, e.clientY/height);
+    gl.uniform2f(mouseCoordLocation, e.clientX, height-e.clientY);
 }
 
-function onMouseOut(){
+function onMouseDown(){
     gl.uniform1f(mouseEnableLocation, 0);
 }
 
-function onMouseIn(){
-    gl.uniform1f(mouseEnableLocation, 1);
+function onMouseUp(){
+    gl.uniform1f(mouseEnableLocation, 0);
 }
