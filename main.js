@@ -55,10 +55,10 @@ function initGL() {
 
     // setup a GLSL program
     stepProgram = createProgramFromScripts(gl, "2d-vertex-shader", "2d-fragment-shader");
-    //renderProgram = createProgramFromScripts(gl, "2d-vertex-shader", "2d-render-shader");
-    //gl.useProgram(renderProgram);
-    //loadVertexData(gl, renderProgram);
-    //textureSizeLocationRender = gl.getUniformLocation(renderProgram, "u_textureSize");
+    renderProgram = createProgramFromScripts(gl, "2d-vertex-shader", "2d-render-shader");
+    gl.useProgram(renderProgram);
+    loadVertexData(gl, renderProgram);
+    textureSizeLocationRender = gl.getUniformLocation(renderProgram, "u_textureSize");
     gl.useProgram(stepProgram);
     loadVertexData(gl, stepProgram);
 
@@ -68,14 +68,14 @@ function initGL() {
 
     //renderflag
     renderFlagLocation = gl.getUniformLocation(stepProgram, "u_renderFlag");
-    
+
 
     textureSizeLocation = gl.getUniformLocation(stepProgram, "u_textureSize");
     mouseCoordLocation = gl.getUniformLocation(stepProgram, "u_mouseCoord");
     mouseEnableLocation = gl.getUniformLocation(stepProgram, "u_mouseEnable");
 
 
-    onResize();
+    resetWindow();
 
     states[0] = resizedLastState;
     states[1] = resizedCurrentState;
@@ -158,7 +158,12 @@ function render(){
         gl.uniform1f(flipYLocation, 1);// don't y flip images while drawing to the textures
         gl.uniform1f(renderFlagLocation, 0);
 
+
         for (var i=0;i<40;i++) {
+            if (paused) {
+                window.requestAnimationFrame(render);
+                return;
+            }
             step(i);
         }
 
@@ -171,7 +176,7 @@ function render(){
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.bindTexture(gl.TEXTURE_2D, states[0]);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    }
+    } else resetWindow();
 
     window.requestAnimationFrame(render);
 }
@@ -185,7 +190,9 @@ function step(i){
 
 function onResize(){
     paused = true;
+}
 
+function resetWindow(){
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
     width = canvas.clientWidth;
@@ -196,8 +203,8 @@ function onResize(){
     // set the size of the texture
     gl.useProgram(stepProgram);
     gl.uniform2f(textureSizeLocation, width, height);
-    //gl.useProgram(renderProgram);
-    //gl.uniform2f(textureSizeLocationRender, width, height);
+    gl.useProgram(renderProgram);
+    gl.uniform2f(textureSizeLocationRender, width, height);
 
     //texture for saving output from frag shader
     resizedCurrentState = makeTexture(gl, null);
