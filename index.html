@@ -35,11 +35,11 @@
         uniform vec2 u_mouseCoord;
         uniform float u_mouseEnable;
 
-        uniform float u_kParam;
-        uniform float u_fParam;
-        uniform float u_DvParam;
-        uniform float u_DuParam;
-        uniform float u_dt;
+        const float fParam = 0.0545;
+        const float kParam = 0.062;
+	    const float DuParam = 0.2;
+	    const float DvParam = 0.1;
+	    const float dt = 1.0;
 
         uniform float u_renderFlag;
 
@@ -48,15 +48,12 @@
             vec2 onePixel = vec2(1.0, 1.0)/u_textureSize;
 
             vec4 currentState = texture2D(u_image, v_texCoord);
-            float u = currentState.r;
-            float v = currentState.g;
+            float u = currentState.x;
+            float v = currentState.y;
 
             if (u_renderFlag == 1.0){
-                float position = currentState.r;
-                position += 0.5;
-                if (position > 1.0) position = 1.0;
-                if (position < 0.0) position = 0.0;
-                gl_FragColor = vec4(position, position, position, 1);
+                float vRender = (0.4 - v) / (0.2);
+                gl_FragColor = vec4(vRender, vRender, vRender, 1);
                 return;
             }
 
@@ -65,7 +62,7 @@
                 vec2 pxDistFromMouse = (v_texCoord - u_mouseCoord)*(v_texCoord - u_mouseCoord)/onePixel;
                 float tol = 0.005;
                 if (pxDistFromMouse.x < tol && pxDistFromMouse.y < tol){
-                    v += 20.0;//upward force from mouse
+                    v += 3.0;//mouse adds v to scene
                 }
             }
 
@@ -85,8 +82,8 @@
                         neighborState = texture2D(u_image, neighborCoord);
                     }
 
-                    nextU += neighborState.r;
-                    nextV += neighborState.g;
+                    nextU += neighborState.x;
+                    nextV += neighborState.y;
 
                 }
             }
@@ -94,18 +91,19 @@
             nextU -= 4.0*u;
             nextV -= 4.0*v;
 
-            nextU *= u_DuParam/(onePixel.x*onePixel.x);
-            nextV *= u_DvParam/(onePixel.x*onePixel.x);
+            nextU *= DuParam;///(onePixel.x*onePixel.x);
+            nextV *= DvParam;///(onePixel.x*onePixel.x);
 
             float uvSq = u*v*v;
-            nextU += -uvSq + u_fParam*(1.0 - u);
-            nextV += uvSq - (u_fParam + u_kParam)*v;
+            nextU += -uvSq + fParam*(1.0 - u);
+            nextV += uvSq - (fParam + kParam)*v;
 
-            nextU *= u_dt;
-            nextV *= u_dt;
+            nextU *= dt;
+            nextV *= dt;
 
             nextU += u;
             nextV += v;
+
 
             gl_FragColor = vec4(nextU,nextV,0,1);
         }

@@ -70,13 +70,6 @@ function initGL() {
             1.0, 1.0]
         ), gl.STATIC_DRAW);
 
-    //constants
-    gl.uniform1f(gl.getUniformLocation(program, "u_kParam"), 0.057);
-    gl.uniform1f(gl.getUniformLocation(program, "u_fParam"), 0.03);
-    gl.uniform1f(gl.getUniformLocation(program, "u_DvParam"), 2.0);
-    gl.uniform1f(gl.getUniformLocation(program, "u_DuParam"), 2.0);
-    var dtLocation = gl.getUniformLocation(program, "u_dt");
-    gl.uniform1f(dtLocation, 1.0);
 
     //flip y
     flipYLocation = gl.getUniformLocation(program, "u_flipY");
@@ -128,10 +121,17 @@ function makeFlatArray(rgba){
 }
 
 function makeRandomArray(rgba){
-    for (var x=width/2-100;x<width/2+100;x++) {
-        for (var y=height/2-100;y<height/2+100;y++) {
+    for (var x=0;x<width;x++) {
+        for (var y=0;y<height;y++) {
             var ii = (y*width + x) * 4;
-            //rgba[ii] = 30;
+			var central_square = (x > width/2-10 && x < width/2+10 && y > height/2-10 && y < height/2+10);
+			if (central_square) {
+				rgba[ii] = 0.5 + Math.random() * 0.02 - 0.01;
+				rgba[ii + 1] = 0.25 + Math.random() * 0.02 - 0.01;
+			} else {
+				rgba[ii] = 1.0;
+				rgba[ii + 1] = 0;
+			}
         }
     }
     return rgba;
