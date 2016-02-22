@@ -223,7 +223,7 @@ function onMouseMove(e){
 }
 
 function onMouseDown(){
-    gl.uniform1f(mouseEnableLocation, 0);
+    gl.uniform1f(mouseEnableLocation, 1);
 }
 
 function onMouseUp(){
