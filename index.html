@@ -66,46 +66,22 @@
             //    }
             //}
 
-            float nextU = 0.0;
-            float nextV = 0.0;
-
+            vec2 grad = vec2(-4.0*u, -4.0*v);
 
             for (int i=-1;i<=1;i+=2){
                 for (int j=-1;j<=1;j+=2){
                     if (i == 0 && j == 0) continue;
                     vec2 neighborCoord = v_texCoord + vec2(onePixel.x*float(i), onePixel.y*float(j));
 
-                    vec4 neighborState;
-                    if (neighborCoord.x < 0.0 || neighborCoord.y < 0.0 || neighborCoord.x >= 1.0 || neighborCoord.y >= 1.0){
-                        neighborState = vec4(u,v,0.0,1.0);
-                    } else {
-                        neighborState = texture2D(u_image, neighborCoord);
-                    }
-
-                    nextU += neighborState.x;
-                    nextV += neighborState.y;
-
+                    grad = grad + texture2D(u_image, neighborCoord).xy;
                 }
             }
 
-            nextU -= 4.0*u;
-            nextV -= 4.0*v;
-
-            nextU *= DuParam;///(onePixel.x*onePixel.x);
-            nextV *= DvParam;///(onePixel.x*onePixel.x);
-
             float uvSq = u*v*v;
-            nextU += -uvSq + fParam*(1.0 - u);
-            nextV += uvSq - (fParam + kParam)*v;
+            vec2 delta = dt*vec2(DuParam*grad.x - uvSq + fParam*(1.0 - u),
+            DvParam*grad.y + uvSq - (fParam + kParam)*v);
 
-            nextU *= dt;
-            nextV *= dt;
-
-            nextU += u;
-            nextV += v;
-
-
-            gl_FragColor = vec4(nextU,nextV,0,1);
+            gl_FragColor = vec4(u + delta.x, v + delta.y, 0, 1);
         }
     </script>
 </head>
