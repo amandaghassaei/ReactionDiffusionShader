@@ -18,13 +18,26 @@
         }
     </script>
 
+    <script id="2d-render-shader" type="x-shader/x-fragment">
+        precision mediump float;
+
+        uniform sampler2D u_image;
+        uniform vec2 u_textureSize;
+
+        const float COLOR_MIN = 0.2, COLOR_MAX = 0.4;
+
+        void main() {
+            float v = (COLOR_MAX - texture2D(u_image, gl_FragCoord.xy / u_textureSize).y) / (COLOR_MAX - COLOR_MIN);
+            gl_FragColor = vec4(v, v, v, 1);
+        }
+        </script>
+
     <script id="2d-fragment-shader" type="x-shader/x-fragment">
         precision mediump float;
 
         //texture array
         uniform sampler2D u_image;//u, v, --, -- = r, g, b, a
 
-        varying vec2 v_texCoord;
         uniform vec2 u_textureSize;
 
         uniform vec2 u_mouseCoord;
@@ -41,12 +54,6 @@
         void main() {
 
             vec2 fragCoord = gl_FragCoord.xy;
-            vec2 n = fragCoord + vec2(0.0, 1.0);//north
-            vec2 s = fragCoord + vec2(0.0, -1.0);//south
-            vec2 e = fragCoord + vec2(1.0, 0.0);//east
-            vec2 w = fragCoord + vec2(-1.0, 0.0);//west
-
-            vec2 onePixel = vec2(1.0, 1.0)/u_textureSize;
 
             vec2 currentState = texture2D(u_image, fragCoord/u_textureSize).xy;
             float u = currentState.x;
@@ -57,6 +64,11 @@
                 gl_FragColor = vec4(vRender, vRender, vRender, 1);
                 return;
             }
+
+            vec2 n = fragCoord + vec2(0.0, 1.0);//north
+            vec2 s = fragCoord + vec2(0.0, -1.0);//south
+            vec2 e = fragCoord + vec2(1.0, 0.0);//east
+            vec2 w = fragCoord + vec2(-1.0, 0.0);//west
 
 
             //if (u_mouseEnable == 1.0){

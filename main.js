@@ -3,6 +3,8 @@
  */
 
 
+//used a lot of ideas from https://bl.ocks.org/robinhouston/ed597847175cf692ecce to clean this code up
+
 var gl;
 var canvas;
 var frameBuffers;
@@ -14,9 +16,13 @@ var resizedCurrentState;
 var width;
 var height;
 
+var stepProgram;
+var renderProgram;
+
 var flipYLocation;
 var renderFlagLocation;
 var textureSizeLocation;
+var textureSizeLocationRender;
 
 var mouseCoordLocation;
 var mouseEnableLocation;
@@ -48,48 +54,25 @@ function initGL() {
     gl.getExtension('OES_texture_float');
 
     // setup a GLSL program
-    var program = createProgramFromScripts(gl, "2d-vertex-shader", "2d-fragment-shader");
-    gl.useProgram(program);
-
-    // look up where the vertex data needs to go.
-    var positionLocation = gl.getAttribLocation(program, "a_position");
-
-    // Create a buffer for positions
-    var bufferPos = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, bufferPos);
-    gl.enableVertexAttribArray(positionLocation);
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-            -1.0, -1.0,
-            1.0, -1.0,
-            -1.0, 1.0,
-            -1.0, 1.0,
-            1.0, -1.0,
-            1.0, 1.0]
-        ), gl.STATIC_DRAW);
+    stepProgram = createProgramFromScripts(gl, "2d-vertex-shader", "2d-fragment-shader");
+    //renderProgram = createProgramFromScripts(gl, "2d-vertex-shader", "2d-render-shader");
+    //gl.useProgram(renderProgram);
+    //loadVertexData(gl, renderProgram);
+    //textureSizeLocationRender = gl.getUniformLocation(renderProgram, "u_textureSize");
+    gl.useProgram(stepProgram);
+    loadVertexData(gl, stepProgram);
 
 
     //flip y
-    flipYLocation = gl.getUniformLocation(program, "u_flipY");
+    flipYLocation = gl.getUniformLocation(stepProgram, "u_flipY");
 
     //renderflag
-    renderFlagLocation = gl.getUniformLocation(program, "u_renderFlag");
+    renderFlagLocation = gl.getUniformLocation(stepProgram, "u_renderFlag");
+    
 
-    // provide texture coordinates for the rectangle.
-    var texCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-        0.0, 0.0,
-        1.0, 0.0,
-        0.0, 1.0,
-        0.0, 1.0,
-        1.0, 0.0,
-        1.0, 1.0]), gl.STATIC_DRAW);
-
-    textureSizeLocation = gl.getUniformLocation(program, "u_textureSize");
-    mouseCoordLocation = gl.getUniformLocation(program, "u_mouseCoord");
-    mouseEnableLocation = gl.getUniformLocation(program, "u_mouseEnable");
+    textureSizeLocation = gl.getUniformLocation(stepProgram, "u_textureSize");
+    mouseCoordLocation = gl.getUniformLocation(stepProgram, "u_mouseCoord");
+    mouseEnableLocation = gl.getUniformLocation(stepProgram, "u_mouseEnable");
 
 
     onResize();
@@ -104,6 +87,16 @@ function initGL() {
     gl.bindTexture(gl.TEXTURE_2D, states[0]);//original texture
 
     render();
+}
+
+function loadVertexData(gl, program) {
+	gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([ -1,-1, 1,-1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+
+    // look up where the vertex data needs to go.
+	var positionLocation = gl.getAttribLocation(program, "a_position");
+	gl.enableVertexAttribArray(positionLocation);
+	gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 }
 
 function makeFrameBuffer(state){
@@ -151,6 +144,8 @@ function render(){
 
     if (!paused) {
 
+        gl.useProgram(stepProgram);
+
         if (resizedLastState) {
             states[0] = resizedLastState;
             resizedLastState = null;
@@ -167,18 +162,16 @@ function render(){
             step(i);
         }
 
-
         gl.uniform1f(flipYLocation, -1);  // need to y flip for canvas
         gl.uniform1f(renderFlagLocation, 1);//only plot position on render
 
+        //gl.useProgram(renderProgram);
 
         //draw to canvas
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.bindTexture(gl.TEXTURE_2D, states[0]);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
-
-
 
     window.requestAnimationFrame(render);
 }
@@ -187,7 +180,7 @@ function step(i){
     gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers[(i+1)%2]);
     gl.bindTexture(gl.TEXTURE_2D, states[i%2]);
 
-    gl.drawArrays(gl.TRIANGLES, 0, 6);//draw to framebuffer
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);//draw to framebuffer
 }
 
 function onResize(){
@@ -201,7 +194,10 @@ function onResize(){
     gl.viewport(0, 0, width, height);
 
     // set the size of the texture
+    gl.useProgram(stepProgram);
     gl.uniform2f(textureSizeLocation, width, height);
+    //gl.useProgram(renderProgram);
+    //gl.uniform2f(textureSizeLocationRender, width, height);
 
     //texture for saving output from frag shader
     resizedCurrentState = makeTexture(gl, null);
