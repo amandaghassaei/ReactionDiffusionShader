@@ -51,8 +51,8 @@
 
         uniform float u_renderFlag;
 
-        float noise(float x) {
-          return x - floor(x * (1.0 / 289.0)) * 289.0;
+        float rand(vec2 co){
+            return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
         }
 
         void main() {
@@ -79,7 +79,8 @@
                 vec2 pxDistFromMouse = (fragCoord - u_mouseCoord)*(fragCoord - u_mouseCoord);
                 float tol = 10.0;
                 if (pxDistFromMouse.x < tol && pxDistFromMouse.y < tol){
-                    gl_FragColor = vec4(0.5 + 0.5 * 0.02 - 0.01, 0.25 + 0.5 * 0.02 - 0.01, 0, 1);
+                    vec2 invTextureSize =
+                    gl_FragColor = vec4(0.5 + rand(u_textureSize) * 0.02 - 0.01, 0.25 + rand(invTextureSize) * 0.02 - 0.01, 0, 1);
                     return;
                 }
             }
