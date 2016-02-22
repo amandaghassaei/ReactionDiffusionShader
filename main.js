@@ -76,8 +76,6 @@ function initGL() {
     //renderflag
     renderFlagLocation = gl.getUniformLocation(program, "u_renderFlag");
 
-    //set texture location
-    var texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
     // provide texture coordinates for the rectangle.
     var texCoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -88,13 +86,10 @@ function initGL() {
         0.0, 1.0,
         1.0, 0.0,
         1.0, 1.0]), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(texCoordLocation);
-    gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
     textureSizeLocation = gl.getUniformLocation(program, "u_textureSize");
     mouseCoordLocation = gl.getUniformLocation(program, "u_mouseCoord");
     mouseEnableLocation = gl.getUniformLocation(program, "u_mouseEnable");
-
 
 
     onResize();
@@ -156,14 +151,14 @@ function render(){
 
     if (!paused) {
 
-        //if (resizedLastState) {
-        //    states[0] = resizedLastState;
-        //    resizedLastState = null;
-        //}
-        //if (resizedCurrentState) {
-        //    states[1] = resizedCurrentState;
-        //    resizedCurrentState = null;
-        //}
+        if (resizedLastState) {
+            states[0] = resizedLastState;
+            resizedLastState = null;
+        }
+        if (resizedCurrentState) {
+            states[1] = resizedCurrentState;
+            resizedCurrentState = null;
+        }
 
         gl.uniform1f(flipYLocation, 1);// don't y flip images while drawing to the textures
         gl.uniform1f(renderFlagLocation, 0);

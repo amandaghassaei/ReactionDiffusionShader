@@ -11,15 +11,10 @@
     <script id="2d-vertex-shader" type="x-shader/x-vertex">
 
         attribute vec2 a_position;
-
         uniform float u_flipY;
-
-        attribute vec2 a_texCoord;
-        varying vec2 v_texCoord;
 
         void main() {
            gl_Position = vec4(a_position.x, u_flipY*a_position.y, 0, 1);
-           v_texCoord = a_texCoord;
         }
     </script>
 
@@ -45,9 +40,15 @@
 
         void main() {
 
+            vec2 fragCoord = gl_FragCoord.xy;
+            vec2 n = fragCoord + vec2(0.0, 1.0);//north
+            vec2 s = fragCoord + vec2(0.0, -1.0);//south
+            vec2 e = fragCoord + vec2(1.0, 0.0);//east
+            vec2 w = fragCoord + vec2(-1.0, 0.0);//west
+
             vec2 onePixel = vec2(1.0, 1.0)/u_textureSize;
 
-            vec4 currentState = texture2D(u_image, v_texCoord);
+            vec2 currentState = texture2D(u_image, fragCoord/u_textureSize).xy;
             float u = currentState.x;
             float v = currentState.y;
 
@@ -66,16 +67,8 @@
             //    }
             //}
 
-            vec2 grad = vec2(-4.0*u, -4.0*v);
-
-            for (int i=-1;i<=1;i+=2){
-                for (int j=-1;j<=1;j+=2){
-                    if (i == 0 && j == 0) continue;
-                    vec2 neighborCoord = v_texCoord + vec2(onePixel.x*float(i), onePixel.y*float(j));
-
-                    grad = grad + texture2D(u_image, neighborCoord).xy;
-                }
-            }
+            vec2 grad = texture2D(u_image, n/u_textureSize).xy + texture2D(u_image, s/u_textureSize).xy
+                + texture2D(u_image, e/u_textureSize).xy + texture2D(u_image, w/u_textureSize).xy - 4.0*currentState;
 
             float uvSq = u*v*v;
             vec2 delta = dt*vec2(DuParam*grad.x - uvSq + fParam*(1.0 - u),
