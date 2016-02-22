@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Mass-Spring Shader</title>
+    <title>Reaction-Diffusion Shader</title>
 
     <link rel="stylesheet" type="text/css" href="main.css">
 
@@ -58,13 +58,13 @@
             }
 
 
-            if (u_mouseEnable == 1.0){
-                vec2 pxDistFromMouse = (v_texCoord - u_mouseCoord)*(v_texCoord - u_mouseCoord)/onePixel;
-                float tol = 0.005;
-                if (pxDistFromMouse.x < tol && pxDistFromMouse.y < tol){
-                    v += 3.0;//mouse adds v to scene
-                }
-            }
+            //if (u_mouseEnable == 1.0){
+            //    vec2 pxDistFromMouse = (v_texCoord - u_mouseCoord)*(v_texCoord - u_mouseCoord)/onePixel;
+            //    float tol = 0.005;
+            //    if (pxDistFromMouse.x < tol && pxDistFromMouse.y < tol){
+            //        v += 3.0;//mouse adds v to scene
+            //    }
+            //}
 
             float nextU = 0.0;
             float nextV = 0.0;

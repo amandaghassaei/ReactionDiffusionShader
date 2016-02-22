@@ -5,9 +5,8 @@
 
 var gl;
 var canvas;
-var lastState;
-var currentState;
-var frameBuffer;
+var frameBuffers;
+var states = [null, null];
 
 var resizedLastState;
 var resizedCurrentState;
@@ -100,16 +99,23 @@ function initGL() {
 
     onResize();
 
-    lastState = resizedLastState;
-    currentState = resizedCurrentState;
+    states[0] = resizedLastState;
+    states[1] = resizedCurrentState;
     resizedLastState = null;
     resizedCurrentState = null;
 
-    frameBuffer = gl.createFramebuffer();
+    frameBuffers = [makeFrameBuffer(states[0]), makeFrameBuffer(states[1])];
 
-    gl.bindTexture(gl.TEXTURE_2D, lastState);//original texture
+    gl.bindTexture(gl.TEXTURE_2D, states[0]);//original texture
 
     render();
+}
+
+function makeFrameBuffer(state){
+    var frameBuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffe);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, state, 0);
+    return frameBuffer;
 }
 
 function makeFlatArray(rgba){
@@ -156,28 +162,29 @@ function render(){
     if (!paused) {
 
         if (resizedLastState) {
-            lastState = resizedLastState;
+            states[0] = resizedLastState;
             resizedLastState = null;
         }
         if (resizedCurrentState) {
-            currentState = resizedCurrentState;
+            states[1] = resizedCurrentState;
             resizedCurrentState = null;
         }
 
         gl.uniform1f(flipYLocation, 1);// don't y flip images while drawing to the textures
         gl.uniform1f(renderFlagLocation, 0);
 
-        step();
+        for (var i=0;i<40;i++) {
+            step();
+        }
 
 
         gl.uniform1f(flipYLocation, -1);  // need to y flip for canvas
         gl.uniform1f(renderFlagLocation, 1);//only plot position on render
-        gl.bindTexture(gl.TEXTURE_2D, lastState);
 
 
         //draw to canvas
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.bindTexture(gl.TEXTURE_2D, lastState);
+        gl.bindTexture(gl.TEXTURE_2D, states[0]);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
 
@@ -187,16 +194,16 @@ function render(){
 }
 
 function step(){
-    gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, currentState, 0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers[0]);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, states[1], 0);
 
-    gl.bindTexture(gl.TEXTURE_2D, lastState);
+    gl.bindTexture(gl.TEXTURE_2D, states[0]);
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);//draw to framebuffer
 
-    var temp = lastState;
-    lastState = currentState;
-    currentState = temp;
+    var temp = states[0];
+    states[0] = states[1];
+    states[1] = temp;
 }
 
 function onResize(){
