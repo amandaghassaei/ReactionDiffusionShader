@@ -118,13 +118,6 @@ function makeFrameBuffer(state){
     return frameBuffer;
 }
 
-function makeFlatArray(rgba){
-    var numPixels = rgba.length/4;
-    for (var i=0;i<numPixels;i++) {
-        rgba[i * 4 + 3] = 1;
-    }
-    return rgba;
-}
 
 function makeRandomArray(rgba){
     for (var x=0;x<width;x++) {
@@ -143,7 +136,7 @@ function makeRandomArray(rgba){
     return rgba;
 }
 
-function makeTexture(gl){
+function makeTexture(gl, data){
 
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -153,6 +146,8 @@ function makeTexture(gl){
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, data);
 
     return texture;
 }
@@ -198,10 +193,6 @@ function step(i){
     gl.bindTexture(gl.TEXTURE_2D, states[i%2]);
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);//draw to framebuffer
-
-    //var temp = states[0];
-    //states[0] = states[1];
-    //states[1] = temp;
 }
 
 function onResize(){
@@ -218,14 +209,11 @@ function onResize(){
     gl.uniform2f(textureSizeLocation, width, height);
 
     //texture for saving output from frag shader
-    resizedCurrentState = makeTexture(gl);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, null);
+    resizedCurrentState = makeTexture(gl, null);
 
-    resizedLastState = makeTexture(gl);
     //fill with random pixels
     var rgba = new Float32Array(width*height*4);
-    rgba = makeFlatArray(rgba);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, makeRandomArray(rgba));
+    resizedLastState = makeTexture(gl, makeRandomArray(rgba));
 
     paused = false;
 }
