@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mass-Spring Shader</title>
+
+    <link rel="stylesheet" type="text/css" href="main.css">
+
+    <script type="text/javascript" src="GlBoilerplate.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+    <script id="2d-vertex-shader" type="x-shader/x-vertex">
+
+        attribute vec2 a_position;
+
+        uniform float u_flipY;
+
+        attribute vec2 a_texCoord;
+        varying vec2 v_texCoord;
+
+        void main() {
+           gl_Position = vec4(a_position.x, u_flipY*a_position.y, 0, 1);
+           v_texCoord = a_texCoord;
+        }
+    </script>
+
+    <script id="2d-fragment-shader" type="x-shader/x-fragment">
+        precision mediump float;
+
+        //texture array
+        uniform sampler2D u_image;//u, v, --, -- = r, g, b, a
+
+        varying vec2 v_texCoord;
+        uniform vec2 u_textureSize;
+
+        uniform vec2 u_mouseCoord;
+        uniform float u_mouseEnable;
+
+        uniform float u_kParam;
+        uniform float u_fParam;
+        uniform float u_DvParam;
+        uniform float u_DuParam;
+        uniform float u_dt;
+
+        uniform float u_renderFlag;
+
+        void main() {
+
+            vec2 onePixel = vec2(1.0, 1.0)/u_textureSize;
+
+            vec4 currentState = texture2D(u_image, v_texCoord);
+            float u = currentState.r;
+            float v = currentState.g;
+
+            if (u_renderFlag == 1.0){
+                float position = currentState.r;
+                position += 0.5;
+                if (position > 1.0) position = 1.0;
+                if (position < 0.0) position = 0.0;
+                gl_FragColor = vec4(position, position, position, 1);
+                return;
+            }
+
+
+            if (u_mouseEnable == 1.0){
+                vec2 pxDistFromMouse = (v_texCoord - u_mouseCoord)*(v_texCoord - u_mouseCoord)/onePixel;
+                float tol = 0.005;
+                if (pxDistFromMouse.x < tol && pxDistFromMouse.y < tol){
+                    v += 20.0;//upward force from mouse
+                }
+            }
+
+            float nextU = 0.0;
+            float nextV = 0.0;
+
+
+            for (int i=-1;i<=1;i+=2){
+                for (int j=-1;j<=1;j+=2){
+                    if (i == 0 && j == 0) continue;
+                    vec2 neighborCoord = v_texCoord + vec2(onePixel.x*float(i), onePixel.y*float(j));
+
+                    vec4 neighborState;
+                    if (neighborCoord.x < 0.0 || neighborCoord.y < 0.0 || neighborCoord.x >= 1.0 || neighborCoord.y >= 1.0){
+                        neighborState = vec4(u,v,0.0,1.0);
+                    } else {
+                        neighborState = texture2D(u_image, neighborCoord);
+                    }
+
+                    nextU += neighborState.r;
+                    nextV += neighborState.g;
+
+                }
+            }
+
+            nextU -= 4.0*u;
+            nextV -= 4.0*v;
+
+            nextU *= u_DuParam/(onePixel.x*onePixel.x);
+            nextV *= u_DvParam/(onePixel.x*onePixel.x);
+
+            float uvSq = u*v*v;
+            nextU += -uvSq + u_fParam*(1.0 - u);
+            nextV += uvSq - (u_fParam + u_kParam)*v;
+
+            nextU *= u_dt;
+            nextV *= u_dt;
+
+            nextU += u;
+            nextV += v;
+
+            gl_FragColor = vec4(nextU,nextV,0,1);
+        }
+    </script>
+</head>
+<body>
+
+<canvas id="glcanvas"></canvas>
+
+</body>
+</html>
