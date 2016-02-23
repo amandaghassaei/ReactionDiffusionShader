@@ -71,7 +71,7 @@
                 float tol = 10.0;
                 if (pxDistFromMouse.x < tol && pxDistFromMouse.y < tol){
                     vec2 invTextureSize = vec2(u_textureSize.y, u_textureSize.x);
-                    gl_FragColor = vec4(0.5 + rand(u_textureSize) * 0.02 - 0.01, 0.25 + rand(invTextureSize) * 0.02 - 0.01, 0, 1);
+                    gl_FragColor = vec4(0.6 + rand(u_textureSize) * 0.02 - 0.01, 0.35 + rand(invTextureSize) * 0.02 - 0.01, 0, 1);
                     return;
                 }
             }

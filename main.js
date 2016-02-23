@@ -44,7 +44,7 @@ function initGL() {
 
     window.onresize = onResize;
 
-    gl = canvas.getContext("webgl", { antialias: false}) || canvas.getContext("experimental-webgl", { antialias: false});
+    gl = canvas.getContext("webgl", {antialias:false}) || canvas.getContext("experimental-webgl", {antialias:false});
     if (!gl) {
         alert('Could not initialize WebGL, try another browser');
         return;
@@ -130,11 +130,11 @@ function render(){
     if (!paused) {
 
         gl.useProgram(stepProgram);
+
         if (mouseEnable){
             gl.uniform1f(mouseEnableLocation, 1);
             gl.uniform2f(mouseCoordLocation, mouseCoordinates[0], mouseCoordinates[1]);
         } else gl.uniform1f(mouseEnableLocation, 0);
-
 
         if (resizedLastState) {
             states[0] = resizedLastState;
@@ -156,7 +156,6 @@ function render(){
             }
 
             step(i);
-
         }
 
         gl.useProgram(renderProgram);
@@ -165,6 +164,7 @@ function render(){
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.bindTexture(gl.TEXTURE_2D, states[0]);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
     } else resetWindow();
 
     window.requestAnimationFrame(render);
@@ -206,8 +206,7 @@ function resetWindow(){
 }
 
 function onMouseMove(e){
-    mouseCoordinates = [e.clientX, height-e.clientY]
-
+    mouseCoordinates = [e.clientX, height-e.clientY];
 }
 
 function onMouseDown(){
