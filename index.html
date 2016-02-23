@@ -11,10 +11,9 @@
     <script id="2d-vertex-shader" type="x-shader/x-vertex">
 
         attribute vec2 a_position;
-        uniform float u_flipY;
 
         void main() {
-           gl_Position = vec4(a_position.x, u_flipY*a_position.y, 0, 1);
+           gl_Position = vec4(a_position, 0, 1);
         }
     </script>
 
@@ -27,7 +26,7 @@
         const float COLOR_MIN = 0.2, COLOR_MAX = 0.4;
 
         void main() {
-            float v = (COLOR_MAX - texture2D(u_image, gl_FragCoord.xy / u_textureSize).y) / (COLOR_MAX - COLOR_MIN);
+            float v = (COLOR_MAX - texture2D(u_image, gl_FragCoord.xy / u_textureSize)).y / (COLOR_MAX - COLOR_MIN);
             gl_FragColor = vec4(v, v, v, 1);
         }
         </script>
@@ -49,8 +48,6 @@
 	    const float DvParam = 0.1;
 	    const float dt = 1.0;
 
-        uniform float u_renderFlag;
-
         float rand(vec2 co){
             return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
         }
@@ -63,12 +60,6 @@
             float u = currentState.x;
             float v = currentState.y;
 
-            if (u_renderFlag == 1.0){
-                float vRender = (0.4 - v) / (0.2);
-                gl_FragColor = vec4(vRender, vRender, vRender, 1);
-                return;
-            }
-
             vec2 n = fragCoord + vec2(0.0, 1.0);//north
             vec2 s = fragCoord + vec2(0.0, -1.0);//south
             vec2 e = fragCoord + vec2(1.0, 0.0);//east
@@ -79,7 +70,7 @@
                 vec2 pxDistFromMouse = (fragCoord - u_mouseCoord)*(fragCoord - u_mouseCoord);
                 float tol = 10.0;
                 if (pxDistFromMouse.x < tol && pxDistFromMouse.y < tol){
-                    vec2 invTextureSize =
+                    vec2 invTextureSize = vec2(u_textureSize.y, u_textureSize.x);
                     gl_FragColor = vec4(0.5 + rand(u_textureSize) * 0.02 - 0.01, 0.25 + rand(invTextureSize) * 0.02 - 0.01, 0, 1);
                     return;
                 }

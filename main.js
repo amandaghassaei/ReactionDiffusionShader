@@ -19,13 +19,13 @@ var height;
 var stepProgram;
 var renderProgram;
 
-var flipYLocation;
-var renderFlagLocation;
 var textureSizeLocation;
 var textureSizeLocationRender;
 
 var mouseCoordLocation;
+var mouseCoordinates =  [null, null];
 var mouseEnableLocation;
+var mouseEnable = false;
 
 var paused = false;//while window is resizing
 
@@ -61,13 +61,6 @@ function initGL() {
     textureSizeLocationRender = gl.getUniformLocation(renderProgram, "u_textureSize");
     gl.useProgram(stepProgram);
     loadVertexData(gl, stepProgram);
-
-
-    //flip y
-    flipYLocation = gl.getUniformLocation(stepProgram, "u_flipY");
-
-    //renderflag
-    renderFlagLocation = gl.getUniformLocation(stepProgram, "u_renderFlag");
 
 
     textureSizeLocation = gl.getUniformLocation(stepProgram, "u_textureSize");
@@ -137,6 +130,11 @@ function render(){
     if (!paused) {
 
         gl.useProgram(stepProgram);
+        if (mouseEnable){
+            gl.uniform1f(mouseEnableLocation, 1);
+            gl.uniform2f(mouseCoordLocation, mouseCoordinates[0], mouseCoordinates[1]);
+        } else gl.uniform1f(mouseEnableLocation, 0);
+
 
         if (resizedLastState) {
             states[0] = resizedLastState;
@@ -151,10 +149,6 @@ function render(){
             resizedCurrentState = null;
         }
 
-        gl.uniform1f(flipYLocation, 1);// don't y flip images while drawing to the textures
-        gl.uniform1f(renderFlagLocation, 0);
-
-
         for (var i=0;i<40;i++) {
             if (paused) {
                 window.requestAnimationFrame(render);
@@ -165,10 +159,7 @@ function render(){
 
         }
 
-        gl.uniform1f(flipYLocation, -1);  // need to y flip for canvas
-        gl.uniform1f(renderFlagLocation, 1);//only plot position on render
-
-        //gl.useProgram(renderProgram);
+        gl.useProgram(renderProgram);
 
         //draw to canvas
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -215,13 +206,14 @@ function resetWindow(){
 }
 
 function onMouseMove(e){
-    gl.uniform2f(mouseCoordLocation, e.clientX, height-e.clientY);
+    mouseCoordinates = [e.clientX, height-e.clientY]
+
 }
 
 function onMouseDown(){
-    gl.uniform1f(mouseEnableLocation, 1);
+    mouseEnable = 1;
 }
 
 function onMouseUp(){
-    gl.uniform1f(mouseEnableLocation, 0);
+    mouseEnable = 0;
 }
