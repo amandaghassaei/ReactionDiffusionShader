@@ -1,8 +1,3 @@
-/**
- * Created by ghassaei on 2/20/16.
- */
-
-
 //used a lot of ideas from https://bl.ocks.org/robinhouston/ed597847175cf692ecce to clean this code up
 
 var gl;
@@ -21,17 +16,26 @@ var renderProgram;
 
 var textureSizeLocation;
 var textureSizeLocationRender;
+var posPositionLocation, negPositionLocation;
 
 var mouseCoordLocation;
 var mouseCoordinates =  [null, null];
 var mouseEnableLocation;
-var mouseEnable = false;
+var mouseEnable = true;
+
+var posPosition = [null, null];
+var negPosition = [null, null];
 
 var paused = false;//while window is resizing
 
 window.onload = initGL;
 
 function initGL() {
+
+    $("#about").click(function(e){
+        e.preventDefault();
+        $("#aboutModal").modal('show');
+    });
 
     // Get A WebGL context
     canvas = document.getElementById("glcanvas");
@@ -40,7 +44,11 @@ function initGL() {
 
     canvas.onmousemove = onMouseMove;
     canvas.onmousedown = onMouseDown;
-    canvas.onmouseup = onMouseUp;
+    // canvas.onmouseup = onMouseUp;
+    canvas.onmouseout = onMouseUp;
+    canvas.onmouseenter = function(){
+        mouseEnable = 1;
+    };
 
     window.onresize = onResize;
 
@@ -66,6 +74,8 @@ function initGL() {
     textureSizeLocation = gl.getUniformLocation(stepProgram, "u_textureSize");
     mouseCoordLocation = gl.getUniformLocation(stepProgram, "u_mouseCoord");
     mouseEnableLocation = gl.getUniformLocation(stepProgram, "u_mouseEnable");
+    posPositionLocation = gl.getUniformLocation(stepProgram, "u_posPosition");
+    negPositionLocation = gl.getUniformLocation(stepProgram, "u_negPosition");
 
 
     frameBuffers = [makeFrameBuffer(), makeFrameBuffer()];
@@ -90,7 +100,6 @@ function loadVertexData(gl, program) {
 function makeFrameBuffer(){
     return gl.createFramebuffer();
 }
-
 
 function makeRandomArray(rgba){
     for (var x=0;x<width;x++) {
@@ -158,6 +167,7 @@ function render(){
             step(i);
         }
 
+
         gl.useProgram(renderProgram);
 
         //draw to canvas
@@ -195,6 +205,12 @@ function resetWindow(){
     gl.useProgram(renderProgram);
     gl.uniform2f(textureSizeLocationRender, width, height);
 
+    var posPosition = [width/3, height/2];
+    var negPosition = [2*width/3, height/2];
+    gl.useProgram(stepProgram);
+    gl.uniform2f(posPositionLocation, posPosition[0], posPosition[1]);
+    gl.uniform2f(negPositionLocation, negPosition[0], negPosition[1]);
+
     //texture for saving output from frag shader
     resizedCurrentState = makeTexture(gl, null);
 
@@ -209,8 +225,16 @@ function onMouseMove(e){
     mouseCoordinates = [e.clientX, height-e.clientY];
 }
 
-function onMouseDown(){
-    mouseEnable = 1;
+function onMouseDown(e){
+    gl.useProgram(stepProgram);
+    mouseCoordinates = [e.clientX, height-e.clientY];
+    if (e.clientX < canvas.clientWidth/2){
+        var posPosition = [mouseCoordinates[0], mouseCoordinates[1]];
+        gl.uniform2f(posPositionLocation, posPosition[0], posPosition[1]);
+    } else {
+        var negPosition = [mouseCoordinates[0], mouseCoordinates[1]];
+        gl.uniform2f(negPositionLocation, negPosition[0], negPosition[1]);
+    }
 }
 
 function onMouseUp(){
