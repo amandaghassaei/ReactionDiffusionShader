@@ -3,7 +3,7 @@ WebGL Shader for a Gray-Scott reaction diffusion system
 
 <img src="https://raw.githubusercontent.com/amandaghassaei/ReactionDiffusionShader/master/img.png"/>
 
-Live demo at <a href="http://git.amandaghassaei.com/ReactionDiffusionShader/" target="_blank">git.amandaghassaei.com/ReactionDiffusionShader/<a>
+Live demo at <a href="http://git.amandaghassaei.com/ReactionDiffusionShader/" target="_blank">git.amandaghassaei.com/ReactionDiffusionShader/</a>
 
 This is a simulation of a <a href="https://en.wikipedia.org/wiki/Reaction%E2%80%93diffusion_system" target="_blank">Gray-Scott reaction-diffusion system</a>, running in a GPU shader.
 The parameters for this model are F = 0.0545 and K = 0.062. With these parameters the system forms a mitosis-like pattern, where small cells divide and spread across space.<br/><br/>
