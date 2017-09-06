@@ -17,15 +17,15 @@ var renderProgram;
 var textureSizeLocation;
 var textureSizeLocationRender;
 var scaleLocationRender;
-var posPositionLocation, negPositionLocation;
 
 var mouseCoordLocation;
 var mouseCoordinates =  [null, null];
 var mouseEnableLocation;
 var mouseEnable = true;
 
-var posPosition = [null, null];
-var negPosition = [null, null];
+var sinks = [];
+var sinksTexture;
+var posPositionLocation, negPositionLocation;
 
 var paused = false;//while window is resizing
 
@@ -72,17 +72,20 @@ function initGL() {
     gl.useProgram(stepProgram);
     loadVertexData(gl, stepProgram);
 
-
     textureSizeLocation = gl.getUniformLocation(stepProgram, "u_textureSize");
     mouseCoordLocation = gl.getUniformLocation(stepProgram, "u_mouseCoord");
     mouseEnableLocation = gl.getUniformLocation(stepProgram, "u_mouseEnable");
     posPositionLocation = gl.getUniformLocation(stepProgram, "u_posPosition");
     negPositionLocation = gl.getUniformLocation(stepProgram, "u_negPosition");
 
+    gl.uniform1i(gl.getUniformLocation(stepProgram, "u_image"), 0);
+    gl.uniform1i(gl.getUniformLocation(stepProgram, "u_sinks"), 1);
+
 
     frameBuffers = [makeFrameBuffer(), makeFrameBuffer()];
 
     resetWindow();
+    makeSinksTexture();
 
     gl.bindTexture(gl.TEXTURE_2D, states[0]);//original texture
 
@@ -120,7 +123,22 @@ function makeRandomArray(rgba){
     return rgba;
 }
 
-function makeTexture(gl, data){
+function makeSinksTexture(){
+    var data = new Float32Array(32*2*4);
+    for (var i=0;i<data.length;i++){
+        data[i] = -1;
+    }
+    for (var i=0;i<sinks.length;i++){
+        data[2*i] = sinks[i][0];
+        data[2*i+1] = sinks[i][1];
+    }
+    sinksTexture = makeTexture(gl, data, 32, 2);
+}
+
+function makeTexture(gl, data, _width, _height){
+
+    _width = _width || width;
+    _height = _height || height;
 
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -131,7 +149,7 @@ function makeTexture(gl, data){
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, data);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, _width, _height, 0, gl.RGBA, gl.FLOAT, data);
 
     return texture;
 }
@@ -186,7 +204,11 @@ function render(){
 
 function step(i){
     gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffers[(i+1)%2]);
+    gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, states[i%2]);
+
+    gl.activeTexture(gl.TEXTURE0+1);
+    gl.bindTexture(gl.TEXTURE_2D, sinksTexture);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);//draw to framebuffer
 }
@@ -235,6 +257,10 @@ function resetWindow(){
 
     var posPosition = [width/3, height/2];
     var negPosition = [2*width/3, height/2];
+    sinks = [];
+    sinks.push([width/3, height/2]);
+    sinks.push([2*width/3, height/2]);
+
     gl.useProgram(stepProgram);
     gl.uniform2f(posPositionLocation, posPosition[0], posPosition[1]);
     gl.uniform2f(negPositionLocation, negPosition[0], negPosition[1]);
@@ -263,6 +289,8 @@ function onMouseDown(e){
         var negPosition = [mouseCoordinates[0], mouseCoordinates[1]];
         gl.uniform2f(negPositionLocation, negPosition[0], negPosition[1]);
     }
+    sinks.push([mouseCoordinates[0], mouseCoordinates[1]]);
+    makeSinksTexture();
 }
 
 function onMouseUp(){

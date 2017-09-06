@@ -24,7 +24,7 @@
         uniform vec2 u_textureSize;
         uniform float u_scale;
 
-        float COLOR_MIN = 0.2, COLOR_MAX = 0.4 + 0.5*(1.0-u_scale);
+        float COLOR_MIN = 0.2, COLOR_MAX = 0.4 + 0.6*(1.0-u_scale);
 
         float bilinearInterp(vec2 pos, sampler2D texture, vec2 size){
             //bilinear interp between nearest cells
@@ -64,6 +64,7 @@
 
         //texture array
         uniform sampler2D u_image;//u, v, --, -- = r, g, b, a
+        uniform sampler2D u_sinks;
 
         uniform vec2 u_textureSize;
 
@@ -73,19 +74,21 @@
         uniform vec2 u_mouseCoord;
         uniform float u_mouseEnable;
 
-        //const float fParam = 0.0545;
-        //const float kParam = 0.062;
-	    const float DuParam = 0.24;
-	    const float DvParam = 0.12;
-
         //dots
         const float fParam = 0.0367;
         const float kParam = 0.065;
+        const float DuParam = 0.24;
+	    const float DvParam = 0.12;
+
+        //classic
+        //const float fParam = 0.0545;
+        //const float kParam = 0.062;
+        //const float DuParam = 0.2;
+	    //const float DvParam = 0.1;
 
         //const float fParam = 0.0300;
         //const float kParam = 0.0625;
-	    //const float DuParam = 0.2;
-	    //const float DvParam = 0.1;
+
 	    const float dt = 1.0;
 
         float rand(vec2 co){
@@ -131,15 +134,36 @@
 
             //rotate diffusion to proper frame
 
-            vec2 magAnglePos = addPointCharge(u_posPosition, fragCoord);
-            vec2 magAngleNeg = addPointCharge(u_negPosition, fragCoord);
+            //vec2 magAnglePos = addPointCharge(u_posPosition, fragCoord);
+            //vec2 magAngleNeg = addPointCharge(u_negPosition, fragCoord);
 
+            //vec2 orientation = vec2(0.5, 0.5);
+            //orientation[0] += magAnglePos[0] + magAngleNeg[0];
+            //float sum = orientation[0] + orientation[1];
+            //orientation /= sum;
+
+            //float angle = magAnglePos[1] + magAngleNeg[1];
+
+            float angle = 0.0;
             vec2 orientation = vec2(0.5, 0.5);
-            orientation[0] += magAnglePos[0] + magAngleNeg[0];
-            float sum = orientation[0] + orientation[1];
+            float sum = 0.0;
+            vec2 sinksSize = vec2(32, 2);
+            for (float j=0.0;j<32.0;j++){
+                vec4 sinks = texture2D(u_sinks, vec2(j/sinksSize.x, 0.5/2.0));
+                if (sinks.x == -1.0) break;
+
+                vec2 sink1 = addPointCharge(sinks.xy, fragCoord);
+
+                vec2 sink2 = vec2(0);
+                if (sinks[2] >= 0.0) sink2 = addPointCharge(vec2(sinks[2], sinks[3]), fragCoord);
+
+                orientation[0] += sink1[0] + sink2[0];
+                sum += orientation[0] + orientation[1];
+
+                angle += sink1[1] + sink2[1];
+            }
             orientation /= sum;
 
-            float angle = magAnglePos[1] + magAngleNeg[1];
 
             float cosAngle = cos(angle);
             float sinAngle = sin(angle);
