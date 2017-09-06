@@ -223,7 +223,6 @@ function resetWindow(){
     height *= scalingFactor;
     width = Math.ceil(width);
     height = Math.ceil(height);
-    console.log(scalingFactor);
 
     gl.viewport(0, 0, width, height);
 
