@@ -16,6 +16,7 @@ var renderProgram;
 
 var textureSizeLocation;
 var textureSizeLocationRender;
+var scaleLocationRender;
 var posPositionLocation, negPositionLocation;
 
 var mouseCoordLocation;
@@ -67,6 +68,7 @@ function initGL() {
     gl.useProgram(renderProgram);
     loadVertexData(gl, renderProgram);
     textureSizeLocationRender = gl.getUniformLocation(renderProgram, "u_textureSize");
+    scaleLocationRender = gl.getUniformLocation(renderProgram, "u_scale");
     gl.useProgram(stepProgram);
     loadVertexData(gl, stepProgram);
 
@@ -159,7 +161,7 @@ function render(){
             resizedCurrentState = null;
         }
 
-        for (var i=0;i<40;i++) {
+        for (var i=0;i<20;i++) {
             if (paused) {
                 window.requestAnimationFrame(render);
                 return;
@@ -202,7 +204,6 @@ function resetWindow(){
     canvas.height = canvas.clientHeight;
     width = canvas.clientWidth;
     height = canvas.clientHeight;
-    console.log(width, height);
 
     scalingFactor = 1;
     var widthScaling = 1;
@@ -222,7 +223,7 @@ function resetWindow(){
     height *= scalingFactor;
     width = Math.ceil(width);
     height = Math.ceil(height);
-    console.log(width, height);
+    console.log(scalingFactor);
 
     gl.viewport(0, 0, width, height);
 
@@ -231,6 +232,7 @@ function resetWindow(){
     gl.uniform2f(textureSizeLocation, width, height);
     gl.useProgram(renderProgram);
     gl.uniform2f(textureSizeLocationRender, canvas.clientWidth, canvas.clientHeight);
+    gl.uniform1f(scaleLocationRender, scalingFactor);
 
     var posPosition = [width/3, height/2];
     var negPosition = [2*width/3, height/2];

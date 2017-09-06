@@ -22,11 +22,38 @@
 
         uniform sampler2D u_image;
         uniform vec2 u_textureSize;
+        uniform float u_scale;
 
-        const float COLOR_MIN = 0.2, COLOR_MAX = 0.4;
+        float COLOR_MIN = 0.2, COLOR_MAX = 0.4 + 0.5*(1.0-u_scale);
+
+        float bilinearInterp(vec2 pos, sampler2D texture, vec2 size){
+            //bilinear interp between nearest cells
+            vec2 pxCenter = vec2(0.5, 0.5);
+            vec2 ceiled = ceil(pos);
+            vec2 floored = floor(pos);
+            float n = texture2D(texture, (ceiled+pxCenter)/size).y;//actually ne
+            float s = texture2D(texture, (floored+pxCenter)/size).y;//actually sw
+            if (ceiled.x != floored.x){
+                float se = texture2D(texture, (vec2(ceiled.x, floored.y)+pxCenter)/size).y;
+                float nw = texture2D(texture, (vec2(floored.x, ceiled.y)+pxCenter)/size).y;
+                n = n*(pos.x-floored.x) + nw*(ceiled.x-pos.x);
+                s = se*(pos.x-floored.x) + s*(ceiled.x-pos.x);
+            }
+            float materialVal = n;
+            if (ceiled.y != floored.y){
+                materialVal = n*(pos.y-floored.y) + s*(ceiled.y-pos.y);
+            }
+            return materialVal;
+        }
 
         void main() {
-            float v = (COLOR_MAX - texture2D(u_image, gl_FragCoord.xy / u_textureSize)).y / (COLOR_MAX - COLOR_MIN);
+
+            vec2 scaledCoord = (gl_FragCoord.xy-vec2(0.5, 0.5))*u_scale;
+            vec2 scaledSize = u_textureSize*u_scale;
+
+            float val = 1.0/u_scale*bilinearInterp(vec2(1.0, 1.0) + scaledCoord/scaledSize*(scaledSize-vec2(0.5, 0.5)/u_scale), u_image, scaledSize);
+
+            float v = (COLOR_MAX - val) / (COLOR_MAX - COLOR_MIN);
             gl_FragColor = vec4(v, v, v, 1);
         }
     </script>
