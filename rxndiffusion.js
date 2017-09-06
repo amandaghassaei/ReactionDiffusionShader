@@ -138,6 +138,7 @@ function render(){
 
     if (!paused) {
 
+        gl.viewport(0, 0, width, height);
         gl.useProgram(stepProgram);
 
         if (mouseEnable){
@@ -168,6 +169,7 @@ function render(){
         }
 
 
+        gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
         gl.useProgram(renderProgram);
 
         //draw to canvas
@@ -191,11 +193,36 @@ function onResize(){
     paused = true;
 }
 
+var maxWidth = 700;
+var maxHeight = 700;
+var scalingFactor = 1;
+
 function resetWindow(){
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
     width = canvas.clientWidth;
     height = canvas.clientHeight;
+    console.log(width, height);
+
+    scalingFactor = 1;
+    var widthScaling = 1;
+    var heightScaling = 1;
+    if (width > maxWidth) {
+        widthScaling = maxWidth/width;
+    }
+    if (height > maxHeight){
+        heightScaling = maxHeight/height;
+    }
+    if (widthScaling<heightScaling){
+        scalingFactor = widthScaling;
+    } else {
+        scalingFactor = heightScaling;
+    }
+    width *= scalingFactor;
+    height *= scalingFactor;
+    width = Math.ceil(width);
+    height = Math.ceil(height);
+    console.log(width, height);
 
     gl.viewport(0, 0, width, height);
 
@@ -203,7 +230,7 @@ function resetWindow(){
     gl.useProgram(stepProgram);
     gl.uniform2f(textureSizeLocation, width, height);
     gl.useProgram(renderProgram);
-    gl.uniform2f(textureSizeLocationRender, width, height);
+    gl.uniform2f(textureSizeLocationRender, canvas.clientWidth, canvas.clientHeight);
 
     var posPosition = [width/3, height/2];
     var negPosition = [2*width/3, height/2];
@@ -222,12 +249,12 @@ function resetWindow(){
 }
 
 function onMouseMove(e){
-    mouseCoordinates = [e.clientX, height-e.clientY];
+    mouseCoordinates = [e.clientX*scalingFactor, height-e.clientY*scalingFactor];
 }
 
 function onMouseDown(e){
     gl.useProgram(stepProgram);
-    mouseCoordinates = [e.clientX, height-e.clientY];
+    mouseCoordinates = [e.clientX*scalingFactor, height-e.clientY*scalingFactor];
     if (e.clientX < canvas.clientWidth/2){
         var posPosition = [mouseCoordinates[0], mouseCoordinates[1]];
         gl.uniform2f(posPositionLocation, posPosition[0], posPosition[1]);
