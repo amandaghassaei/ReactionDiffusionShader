@@ -68,9 +68,6 @@
 
         uniform vec2 u_textureSize;
 
-        uniform vec2 u_posPosition;
-        uniform vec2 u_negPosition;
-
         uniform vec2 u_mouseCoord;
         uniform float u_mouseEnable;
 
@@ -152,10 +149,10 @@
                 vec4 sinks = texture2D(u_sinks, vec2(j/sinksSize.x, 0.5/2.0));
                 if (sinks.x == -1.0) break;
 
-                vec2 sink1 = addPointCharge(sinks.xy, fragCoord);
+                vec2 sink1 = addPointCharge(sinks.xy, fragCoord);//mag, angle
 
                 vec2 sink2 = vec2(0);
-                if (sinks[2] >= 0.0) sink2 = addPointCharge(vec2(sinks[2], sinks[3]), fragCoord);
+                if (sinks[2] >= 0.0) sink2 = addPointCharge(vec2(sinks[2], sinks[3]), fragCoord);//mag, angle
 
                 orientation[0] += sink1[0] + sink2[0];
                 sum += orientation[0] + orientation[1];
@@ -234,6 +231,17 @@
                 <br/><br/>
                 By <a href="http://www.amandaghassaei.com/" target="_blank">Amanda Ghassaei</a>, code on <a href="https://github.com/amandaghassaei/ReactionDiffusionShader" target="_blank">Github</a>.
                 <br/><br/>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="noSupportModal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+    <div class="modal-dialog modal-med">
+        <div class="modal-content">
+            <div class="modal-body">
+                This device/browser does not support some GPU functions needed by this app.
+                Please try again on desktop running Chrome/Firefox.<br/><br/>
             </div>
         </div>
     </div>

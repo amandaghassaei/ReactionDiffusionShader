@@ -1,7 +1,7 @@
 # ReactionDiffusionShader
 WebGL Shader for a Gray-Scott reaction diffusion system
 
-<img src="https://raw.githubusercontent.com/amandaghassaei/ReactionDiffusionShader/master/img.png"/>
+<img src="reactiondiff.jpg"/>
 
 Live demo at <a href="http://git.amandaghassaei.com/ReactionDiffusionShader/" target="_blank">git.amandaghassaei.com/ReactionDiffusionShader/</a>
 

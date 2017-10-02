@@ -25,7 +25,6 @@ var mouseEnable = true;
 
 var sinks = [];
 var sinksTexture;
-var posPositionLocation, negPositionLocation;
 
 var paused = false;//while window is resizing
 
@@ -55,12 +54,17 @@ function initGL() {
 
     gl = canvas.getContext("webgl", {antialias:false}) || canvas.getContext("experimental-webgl", {antialias:false});
     if (!gl) {
-        alert('Could not initialize WebGL, try another browser');
+        notSupported();
         return;
     }
 
     gl.disable(gl.DEPTH_TEST);
-    gl.getExtension('OES_texture_float');
+
+    var floatTextures = gl.getExtension("OES_texture_float");
+
+    if (!floatTextures) {
+       notSupported();
+    }
 
     // setup a GLSL program
     stepProgram = createProgramFromScripts(gl, "2d-vertex-shader", "2d-fragment-shader");
@@ -75,8 +79,6 @@ function initGL() {
     textureSizeLocation = gl.getUniformLocation(stepProgram, "u_textureSize");
     mouseCoordLocation = gl.getUniformLocation(stepProgram, "u_mouseCoord");
     mouseEnableLocation = gl.getUniformLocation(stepProgram, "u_mouseEnable");
-    posPositionLocation = gl.getUniformLocation(stepProgram, "u_posPosition");
-    negPositionLocation = gl.getUniformLocation(stepProgram, "u_negPosition");
 
     gl.uniform1i(gl.getUniformLocation(stepProgram, "u_image"), 0);
     gl.uniform1i(gl.getUniformLocation(stepProgram, "u_sinks"), 1);
@@ -90,6 +92,11 @@ function initGL() {
     gl.bindTexture(gl.TEXTURE_2D, states[0]);//original texture
 
     render();
+
+    var check = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    if (check != gl.FRAMEBUFFER_COMPLETE){
+        notSupported();
+    }
 }
 
 function loadVertexData(gl, program) {
@@ -255,15 +262,9 @@ function resetWindow(){
     gl.uniform2f(textureSizeLocationRender, canvas.clientWidth, canvas.clientHeight);
     gl.uniform1f(scaleLocationRender, scalingFactor);
 
-    var posPosition = [width/3, height/2];
-    var negPosition = [2*width/3, height/2];
     sinks = [];
     sinks.push([width/3, height/2]);
     sinks.push([2*width/3, height/2]);
-
-    gl.useProgram(stepProgram);
-    gl.uniform2f(posPositionLocation, posPosition[0], posPosition[1]);
-    gl.uniform2f(negPositionLocation, negPosition[0], negPosition[1]);
 
     //texture for saving output from frag shader
     resizedCurrentState = makeTexture(gl, null);
@@ -282,17 +283,23 @@ function onMouseMove(e){
 function onMouseDown(e){
     gl.useProgram(stepProgram);
     mouseCoordinates = [e.clientX*scalingFactor, height-e.clientY*scalingFactor];
-    if (e.clientX < canvas.clientWidth/2){
-        var posPosition = [mouseCoordinates[0], mouseCoordinates[1]];
-        gl.uniform2f(posPositionLocation, posPosition[0], posPosition[1]);
-    } else {
-        var negPosition = [mouseCoordinates[0], mouseCoordinates[1]];
-        gl.uniform2f(negPositionLocation, negPosition[0], negPosition[1]);
-    }
     sinks.push([mouseCoordinates[0], mouseCoordinates[1]]);
     makeSinksTexture();
 }
 
 function onMouseUp(){
     mouseEnable = 0;
+}
+
+function notSupported(){
+    var elm = '<div id="coverImg" ' +
+      'style="background: url(reactiondiff.jpg) no-repeat center center fixed;' +
+        '-webkit-background-size: cover;' +
+        '-moz-background-size: cover;' +
+        '-o-background-size: cover;' +
+        'background-size: cover;">'+
+      '</div>';
+    $(elm).appendTo(document.getElementsByTagName("body")[0]);
+    $("#noSupportModal").modal("show");
+   console.warn("floating point textures are not supported on your system");
 }
