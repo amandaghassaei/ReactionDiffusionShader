@@ -283,7 +283,10 @@ function onMouseMove(e){
 function onMouseDown(e){
     gl.useProgram(stepProgram);
     mouseCoordinates = [e.clientX*scalingFactor, height-e.clientY*scalingFactor];
-    sinks.push([mouseCoordinates[0], mouseCoordinates[1]]);
+    var index = 1;
+    if (mouseCoordinates[0]<width/2) index = 0;
+    // sinks.push([mouseCoordinates[0], mouseCoordinates[1]]);
+    sinks[index] = [mouseCoordinates[0], mouseCoordinates[1]];
     makeSinksTexture();
 }
 
