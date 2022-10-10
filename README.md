@@ -1,3 +1,5 @@
+Update: This code has been deprecated and replaced by the following repo: https://github.com/amandaghassaei/gpu-io/tree/main/examples/reaction-diffusion
+
 # ReactionDiffusionShader
 WebGL Shader for a Gray-Scott reaction diffusion system
 
